@@ -136,7 +136,9 @@ sub downloadChunk($$$) {
 	if($re->code == 200) {
 		insert($seq, $time, $re->content);
 		if($seq != $SEQ + 1) {
-			die "$seq != $SEQ";
+			if($SEQ >= 0) {
+				die "sequence wrong: $seq != $SEQ";
+			}
 		}
 		$SEQ = $seq;
 	}
@@ -164,7 +166,7 @@ sub getPlaylist($$) {
 	my $sum = 0;
 	while($s =~ m{#EXTINF:([\+\-]?\d+(?:\.\d+)?(?:[eE][\+\-]?\d+)?)[^\n]*\n(\S+)}g) {
 		#say "$1 $2";
-		my $code = downloadChunk($seq, $time, URI->new_abs($2, $url));
+		my $code = downloadChunk($seq, $time, URI->new_abs($2, $url)) // 0;
 		if($code == 403) {
 			return($re->code, 0, 0);
 		}
@@ -217,7 +219,7 @@ sub getWithTime($$) {
 		}
 
 		$time += $sum;
-		warn $time;
+		#warn $time;
 		for(1..5) {
 			sleep 1;
 		}
